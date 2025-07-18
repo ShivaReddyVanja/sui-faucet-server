@@ -21,6 +21,7 @@ build/
 logs/
 *.log
 *.log.*
+.log./pm2/
 
 # TypeScript
 *.tsbuildinfo

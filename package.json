@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "dev": "pm2 start src/index.ts --name sui-faucet-backend --interpreter ts-node --watch",
+    "start": "pm2 start dist/index.js --name sui-faucet-backend",
+    "prod": "npm run build && npm run start",
+    "stop": "pm2 stop sui-faucet-backend",
+    "logs": "pm2 logs sui-faucet-backend",
+    "monitor": "pm2 monit"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +23,8 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.0.1",
+    "nodemon": "^3.1.10",
+    "pm2": "^6.0.8",
     "winston": "^3.17.0"
   },
   "devDependencies": {
