@@ -2,16 +2,13 @@
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "dev": "pm2 start src/index.ts --name sui-faucet-backend --interpreter ts-node --watch",
-    "start": "pm2 start dist/index.js --name sui-faucet-backend",
-    "prod": "npm run build && npm run start",
-    "stop": "pm2 stop sui-faucet-backend",
-    "logs": "pm2 logs sui-faucet-backend",
-    "monitor": "pm2 monit"
-  },
+ "scripts": {
+       "test": "echo \"Error: no test specified\" && exit 1",
+       "build": "tsc",
+       "dev": "ts-node src/index.ts",
+       "start": "node dist/index.js",
+       "prod": "npm run build && npm run start"
+     },
   "keywords": [],
   "author": "",
   "license": "ISC",
