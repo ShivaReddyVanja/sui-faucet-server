@@ -39,7 +39,8 @@ app.post('/api/faucet', limiter, async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+const port = process.env.PORT || config.port;
 
-app.listen(config.port, () => {
+app.listen(port, () => {
   logger.info(`Server running on port ${config.port}`);
 });
