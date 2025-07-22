@@ -59,7 +59,12 @@ const rateLimitMiddleware = (limiter: RateLimiterRedis, keyFn: (req: Request) =>
     }
   };
 };
+export const ipLimiter = rateLimitMiddleware(ipRateLimiter, (req) => {
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
+  console.log(ip || req.ip ||'unknown-ip')
+  return ip || req.ip || 'unknown-ip';
+});
 
-export const ipLimiter = rateLimitMiddleware(ipRateLimiter, (req) => req.ip || 'unknown-ip');
 export const walletLimiter = rateLimitMiddleware(walletRateLimiter, (req) => req.body.walletAddress);
 
