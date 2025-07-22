@@ -36,7 +36,7 @@ export async function requestTestnetSui(walletAddress: string): Promise<boolean>
         const [coin] = tx.splitCoins(tx.gas, [1_000_000_0]); // 0.01 SUI in MIST (SUI has 9 decimals)
         tx.transferObjects([coin], walletAddress);
 
-        logger.info(`Requesting 1 SUI for address: ${walletAddress}`);
+        logger.info(`Requesting 0.01 SUI for address: ${walletAddress}`);
 
         // Execute the transaction
         const result = await client.signAndExecuteTransaction({
@@ -50,7 +50,7 @@ export async function requestTestnetSui(walletAddress: string): Promise<boolean>
             options: { showEffects: true },
         });
 
-        logger.info(`Successfully sent 1 SUI to ${walletAddress}, tx digest: ${result.digest}`);
+        logger.info(`Successfully sent 0.01 SUI to ${walletAddress}, tx digest: ${result.digest}`);
         return true;
     } catch (error: any) {
         logger.error(`Error processing faucet request for ${walletAddress}: ${error.message}`);
