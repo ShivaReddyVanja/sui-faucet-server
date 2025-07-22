@@ -33,7 +33,7 @@ export async function requestTestnetSui(walletAddress: string): Promise<boolean>
 
         // Create a transaction to transfer 1 SUI
         const tx = new Transaction();
-        const [coin] = tx.splitCoins(tx.gas, [1_000]); // 1 SUI in MIST (SUI has 9 decimals)
+        const [coin] = tx.splitCoins(tx.gas, [1_000_000_0]); // 0.01 SUI in MIST (SUI has 9 decimals)
         tx.transferObjects([coin], walletAddress);
 
         logger.info(`Requesting 1 SUI for address: ${walletAddress}`);

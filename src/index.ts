@@ -13,8 +13,6 @@ app.use(cors())
 app.set('trust proxy', true);
 app.use(express.json());
 
-
-
 app.post('/api/faucet',  [ipLimiter, walletLimiter], async (req: Request, res: Response) => {
   const { walletAddress }: FaucetRequest = req.body;
 
