@@ -33,25 +33,24 @@ export const walletRateLimiter = new RateLimiterRedis({
 type KeyFunction = (req: Request) => string;
 
 const rateLimitMiddleware = (limiter: RateLimiterRedis, keyFn: (req: Request) => string) => {
-
-  return async (req: Request, res: Response, next:NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const key = keyFn(req);
-    
+    console.log(`[RateLimiter] Trying key: ${key}`);
 
     try {
-      await limiter.consume(key); // consume 1 point
+      await limiter.consume(key);
       next();
-    } catch (rejRes:any) {
-
+    } catch (rejRes: any) {
       const msBeforeNext = typeof rejRes?.msBeforeNext === 'number' ? rejRes.msBeforeNext : 0;
-      const retryAfter = Math.ceil(msBeforeNext / 1000); // in seconds
+      const retryAfter = Math.ceil(msBeforeNext / 1000);
       const retryAt = isFinite(msBeforeNext)
         ? new Date(Date.now() + msBeforeNext).toISOString()
         : null;
 
-    
-        res.set('Retry-After', retryAfter.toString()); 
-        res.status(429).json({
+      console.warn(`[RateLimiter] Blocked key: ${key} — retry after ${retryAfter}s`);
+
+      res.set('Retry-After', retryAfter.toString());
+      res.status(429).json({
         retryAfter,
         retryAt,
         error: 'Rate limit exceeded. Please try again later.',
@@ -59,6 +58,7 @@ const rateLimitMiddleware = (limiter: RateLimiterRedis, keyFn: (req: Request) =>
     }
   };
 };
+
 export const ipLimiter = rateLimitMiddleware(ipRateLimiter, (req) => {
   const forwarded = req.headers['x-forwarded-for'];
   const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
