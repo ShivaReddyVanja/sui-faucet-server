@@ -1,24 +1,21 @@
 import express, { Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import logger from './logger';
 import { requestTestnetSui } from './faucet';
 import { FaucetRequest } from './types';
 import cors from "cors"
+import { ipLimiter, walletLimiter } from './middlewares/ratelimiters';
+import dotenv from "dotenv";
 
 const app = express();
+dotenv.config();
 app.use(cors())
-
+app.set('trust proxy', true);
 app.use(express.json());
 
-// Rate limit: 1 request per IP every 5 minutes
-const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 1,
-  message: 'Too many requests, please try again later.',
-});
 
-app.post('/api/faucet', limiter, async (req: Request, res: Response) => {
+
+app.post('/api/faucet',  [ipLimiter, walletLimiter], async (req: Request, res: Response) => {
   const { walletAddress }: FaucetRequest = req.body;
 
   // Basic wallet address validation (Sui addresses are 64 hex chars with 0x prefix)
