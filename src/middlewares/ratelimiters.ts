@@ -11,7 +11,7 @@ const redisClient = new Redis({
   host: url, 
   port: 6379,
   enableOfflineQueue: false,
-   tls: {},
+  //  tls: {},
 });
 
 export const ipRateLimiter = new RateLimiterRedis({
