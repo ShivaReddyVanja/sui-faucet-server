@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model FaucetRequest {
+  id             String   @id @default(uuid())
+  walletAddress  String
+  ipAddress      String
+  txHash         String?      // null if failed
+  amount         Decimal
+  status         RequestStatus
+  failureReason  String?      // optional error message
+  userAgent      String?      // optional, for analytics
+  createdAt      DateTime @default(now())
+}
+
+model FaucetConfig {
+  id                         Int      @id @default(1) // singleton row
+  cooldownSeconds            Int
+  faucetAmount               Decimal
+  enabled                    Boolean  @default(true)
+  maxRequestsPerIp           Int
+  maxRequestsPerWallet       Int
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+enum RequestStatus {
+  success
+  failed
+}

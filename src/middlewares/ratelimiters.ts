@@ -1,44 +1,58 @@
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import Redis from 'ioredis';
 import { Request, Response, NextFunction } from 'express';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
+import { configLoader } from './../utils/faucetConfigLoader';
 
 dotenv.config();
 
-const url = process.env.CACHE_URL || "localhost";
+const url = process.env.CACHE_URL || 'localhost';
 
-const redisClient = new Redis({
-  host: url, 
+export const redisClient = new Redis({
+  host: url,
   port: 6379,
   enableOfflineQueue: false,
-  //  tls: {},
+  tls: {},
 });
 
-export const ipRateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'faucet_ip',
-  points: 1, // 1 request
-  duration: 24 * 60 * 60, // per 24 hours
-  blockDuration: 24 * 60 * 60, // block for 24 hours after limit reached
-});
+// These will be initialized later
+let ipRateLimiter: RateLimiterRedis;
+let walletRateLimiter: RateLimiterRedis;
 
-export const walletRateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'faucet_wallet',
-  points: 1,
-  duration: 24 * 60 * 60,
-  blockDuration: 24 * 60 * 60,
-});
+// Call this once AFTER config is loaded
+export async function initRateLimiters() {
+  const config = configLoader.get(); // Now it's safe
+
+  ipRateLimiter = new RateLimiterRedis({
+    storeClient: redisClient,
+    keyPrefix: 'faucet_ip',
+    points: config.maxRequestsPerIp,
+    duration: config.cooldownSeconds,
+    blockDuration: config.cooldownSeconds,
+  });
+
+  walletRateLimiter = new RateLimiterRedis({
+    storeClient: redisClient,
+    keyPrefix: 'faucet_wallet',
+    points: config.maxRequestsPerWallet,
+    duration: config.cooldownSeconds,
+    blockDuration: config.cooldownSeconds,
+  });
+
+  console.log('[RateLimiter] Initialized');
+}
 
 type KeyFunction = (req: Request) => string;
 
-const rateLimitMiddleware = (limiter: RateLimiterRedis, keyFn: (req: Request) => string) => {
+const rateLimitMiddleware = (
+  limiterGetter: () => RateLimiterRedis,
+  keyFn: KeyFunction
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const key = keyFn(req);
-    console.log(`[RateLimiter] Trying key: ${key}`);
 
     try {
-      await limiter.consume(key);
+      await limiterGetter().consume(key);
       next();
     } catch (rejRes: any) {
       const msBeforeNext = typeof rejRes?.msBeforeNext === 'number' ? rejRes.msBeforeNext : 0;
@@ -47,24 +61,20 @@ const rateLimitMiddleware = (limiter: RateLimiterRedis, keyFn: (req: Request) =>
         ? new Date(Date.now() + msBeforeNext).toISOString()
         : null;
 
-      console.warn(`[RateLimiter] Blocked key: ${key} — retry after ${retryAfter}s`);
-
       res.set('Retry-After', retryAfter.toString());
       res.status(429).json({
         retryAfter,
         retryAt,
         error: 'Rate limit exceeded. Please try again later.',
+        key,
       });
     }
   };
 };
 
-export const ipLimiter = rateLimitMiddleware(ipRateLimiter, (req) => {
+export const ipLimiter = rateLimitMiddleware(() => ipRateLimiter, (req) => {
   const forwarded = req.headers['x-forwarded-for'];
-  const ip = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
-  console.log(ip || req.ip ||'unknown-ip')
-  return ip || req.ip || 'unknown-ip';
+  return Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0] || req.ip || 'unknown-ip';
 });
 
-export const walletLimiter = rateLimitMiddleware(walletRateLimiter, (req) => req.body.walletAddress);
-
+export const walletLimiter = rateLimitMiddleware(() => walletRateLimiter, (req) => req.body.walletAddress);

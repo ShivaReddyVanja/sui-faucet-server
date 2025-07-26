@@ -1,12 +1,12 @@
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction as SuiTransaction } from '@mysten/sui/transactions';
-import { config } from './config';
-import logger from './logger';
+import { config } from '../config';
+import logger from '../logger';
 import { bech32 } from 'bech32';
-import { Transaction } from './models/transactions';
 
-export async function requestTestnetSui(walletAddress: string, ipAddress: string): Promise<{ success: boolean; txDigest?: string }> {
+export async function requestTestnetSui(walletAddress: string, ipAddress: string,amount:number): Promise<{ success: boolean; txDigest?: string }> {
+
   let txDigest: string | undefined;
   let success = false;
 
@@ -16,6 +16,7 @@ export async function requestTestnetSui(walletAddress: string, ipAddress: string
 
     const bech32PrivateKey = config.faucetWalletPrivateKey;
     const { prefix, words } = bech32.decode(bech32PrivateKey);
+
     if (prefix !== 'suiprivkey') {
       throw new Error('Invalid Sui private key prefix');
     }
@@ -46,22 +47,11 @@ export async function requestTestnetSui(walletAddress: string, ipAddress: string
 
     txDigest = result.digest;
     success = true;
-
     logger.info(`Successfully sent 0.01 SUI to ${walletAddress}, tx digest: ${result.digest}`);
+    
   } catch (error: any) {
     logger.error(`Error processing faucet request for ${walletAddress}: ${error.message}`);
   }
-
-  // Save transaction to database (success or failure)
-  const response = await Transaction.create({
-    walletAddress,
-    ipAddress,
-    txHash: txDigest || 'failed',
-    amount: 1_000_000_0, // 0.01 SUI in MIST
-    timestamp: new Date(),
-    status: success ? 'success' : 'failed'
-  });
-
  
   return { success, txDigest };
 }
