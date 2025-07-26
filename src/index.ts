@@ -17,9 +17,8 @@ await configLoader.load();
 await initRateLimiters();    
 
 app.use(cors({
-  origin: "https://artiswap.xyz", // ✅ Only allow this domain
+  origin: "https://www.artiswap.xyz", // ✅ Only allow this domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Add what you use
-  credentials: true, // If you use cookies or auth headers
 }));
 
 app.set('trust proxy', true);
