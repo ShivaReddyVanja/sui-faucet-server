@@ -36,7 +36,7 @@ router.post('/faucet', [ipLimiter, walletLimiter], async (req: Request, res: Res
     try {
         const amount = config.faucetAmount;
         const result = await requestTestnetSui(walletAddress, ipAddress,amount );
-        await prisma.faucetRequest.create({
+        const transaction = await prisma.faucetRequest.create({
             data: {
                 walletAddress,
                 ipAddress,
@@ -47,6 +47,7 @@ router.post('/faucet', [ipLimiter, walletLimiter], async (req: Request, res: Res
                 userAgent: req.headers['user-agent'] || 'unknown',
             },
         });
+        logger.info("Saved transaction in db",transaction)
         if (result.success) {
             res.status(200).json({ message: 'SUI tokens sent successfully', tx: result.txDigest });
         } else {
