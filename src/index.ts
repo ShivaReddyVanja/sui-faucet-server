@@ -17,7 +17,7 @@ await configLoader.load();
 await initRateLimiters();    
 
 app.use(cors());
-// app.set('trust proxy', true);
+app.set('trust proxy', true);
 app.use(express.json());
 
 app.get("/",(req,res)=>{
