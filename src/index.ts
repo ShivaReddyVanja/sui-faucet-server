@@ -21,12 +21,22 @@ await syncAdminsFromEnv();
 await initRateLimiters();    
 
 
-// app.use(cors({
-//   origin: "http://localhost:3000" ,
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials:true
-// }));
-app.use(cors());
+const allowedOrigins = ['https://suicet.xyz', 'https://artiswap.xyz',"https://sui-client.netlify.app/"];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
+
 app.set('trust proxy', true);
 app.use(express.json());
 app.use(cookieParser());
