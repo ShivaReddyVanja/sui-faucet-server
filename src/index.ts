@@ -21,7 +21,7 @@ await syncAdminsFromEnv();
 await initRateLimiters();    
 
 
-const allowedOrigins = ['https://suicet.xyz', 'https://artiswap.xyz',"https://sui-client.netlify.app/"];
+const allowedOrigins = ['https://suicet.xyz', 'https://artiswap.xyz','https://sui-client.netlify.app/'];
 
 app.use(cors({
   origin: function (origin, callback) {
