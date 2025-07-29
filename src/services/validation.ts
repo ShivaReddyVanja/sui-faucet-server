@@ -14,3 +14,14 @@ export const FaucetRequestSchema = z.object({
     .regex(/^0x[a-fA-F0-9]{64}$/, 'Invalid Sui wallet address'),
 });
 
+// Validation schema for login
+export const LoginSchema = z.object({
+  walletAddress: z.string().min(1),
+  message: z.string().min(1),
+  signature: z.string().min(1),
+  signedBytes: z.string().min(1),
+});
+
+const RefreshSchema = z.object({
+  refreshToken: z.string().min(1),
+});

@@ -3,10 +3,12 @@ import prisma from '../lib/prisma';
 import { AdminConfigSchema } from './../services/validation';
 import { configLoader } from '../utils/faucetConfigLoader';
 import logger from '../logger';
+import { authenticateToken, AuthenticatedRequest } from '../middlewares/adminAuth';
 
 const router = express();
 
-router.post('/admin/config/update', async (req, res) => {
+router.post('/admin/config/update', authenticateToken, async (req: AuthenticatedRequest, res) => {
+
   const parseResult = AdminConfigSchema.safeParse(req.body);
 
   if (!parseResult.success) {
@@ -17,15 +19,16 @@ router.post('/admin/config/update', async (req, res) => {
   }
 
   const validatedData = parseResult.data;
-
+  console.log(validatedData);
   try {
     const updated = await prisma.faucetConfig.update({
       where: { id: 1 },
       data: validatedData, // only valid + defined keys
     });
+    console.log(updated)
 
     await configLoader.reload();
-
+  
     res.json({ success: true, config: updated });
   } catch (err: any) {
     logger.error('❌ Failed to update faucet config:', err.message);
@@ -33,7 +36,7 @@ router.post('/admin/config/update', async (req, res) => {
   }
 });
 
-router.get('/admin/analytics', async (req, res) => {
+router.get('/admin/analytics', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const [
       totalRequests,
@@ -86,7 +89,7 @@ router.get('/admin/analytics', async (req, res) => {
   }
 });
 
-router.get('/admin/analytics/timeseries', async (req, res) => {
+router.get('/admin/analytics/timeseries', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const range = (req.query.range as string) || '7d';
     const granularity = (req.query.granularity as string) || 'daily';
@@ -139,4 +142,29 @@ router.get('/admin/analytics/timeseries', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch time-series analytics' });
   }
 });
+
+// GET route to fetch current faucet configuration
+router.get('/admin/config', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+   const config = configLoader.get();
+    // Return the configuration
+    res.json({
+      success: true,
+      config: {
+        tokenAmount: config.faucetAmount/1000000000,
+        cooldownPeriod: config.cooldownSeconds,
+        maxRequestsPerWallet: config.maxRequestsPerWallet,
+        isActive: config.enabled,
+        maxRequestsPerIP: config.maxRequestsPerIp,    
+      }
+    });
+
+  } catch (error: any) {
+    logger.error('❌ Failed to fetch faucet config:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch faucet configuration' 
+    });
+  }
+});
+
 export default router;
