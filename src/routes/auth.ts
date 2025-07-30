@@ -20,10 +20,10 @@ router.post('/admin/login', async (req, res) => {
       });
     }
 
-    const {walletAddress, message, signature, signedBytes } = parseResult.data;
-   
+    const { walletAddress, message, signature, signedBytes } = parseResult.data;
+
     // Verify signature
-    const isValidSignature = await verifyWalletSignature(message, signature,signedBytes);
+    const isValidSignature = await verifyWalletSignature(message, signature, signedBytes);
     if (!isValidSignature) {
       return res.status(401).json({ error: 'Invalid signature' });
     }
@@ -68,6 +68,8 @@ router.post('/admin/login', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.suicet.xyz' : undefined, // 👈 add this line
+      path: '/', // 👈 optional, but safe to include
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
