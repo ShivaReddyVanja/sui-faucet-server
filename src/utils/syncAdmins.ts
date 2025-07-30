@@ -21,7 +21,7 @@ export const syncAdminsFromEnv = async () => {
     logger.warn('No admin wallets found in ADMIN_WALLETS');
     return;
   }
-
+  
   logger.info('Syncing admin wallets from .env:', adminWallets);
 
   const existingAdmins = await prisma.adminUser.findMany();

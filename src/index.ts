@@ -20,7 +20,6 @@ await configLoader.load();
 await syncAdminsFromEnv();
 await initRateLimiters();    
 
-
 const allowedOrigins = ['https://suicet.xyz', 'https://artiswap.xyz','https://sui-client.netlify.app',"http://localhost:3000"];
 
 app.use(cors({
