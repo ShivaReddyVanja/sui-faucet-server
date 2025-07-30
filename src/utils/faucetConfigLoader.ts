@@ -1,7 +1,9 @@
 import prisma from '../lib/prisma';
 import logger from '../logger';
+import { getFaucetWalletBalance } from '../services/fetchBalance';
 
 type FaucetConfig = {
+  availableBalance:number,
   cooldownSeconds: number;
   faucetAmount: number;
   enabled: boolean;
@@ -19,8 +21,9 @@ export const configLoader = {
       if (!config) {
         throw new Error('FaucetConfig not found in database');
       }
-
+      const avlBal = await getFaucetWalletBalance();
       cachedConfig = {
+        availableBalance:Number(avlBal.balance)/1000_000_000,
         cooldownSeconds: config.cooldownSeconds,
         faucetAmount: Number(config.faucetAmount)*1000_000_000,
         enabled: config.enabled,

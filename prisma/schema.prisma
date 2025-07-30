@@ -28,6 +28,7 @@ model FaucetRequest {
 
 model FaucetConfig {
   id                         Int      @id @default(1) // singleton row
+  availableBalance           Int
   cooldownSeconds            Int
   faucetAmount               Decimal
   enabled                    Boolean  @default(true)

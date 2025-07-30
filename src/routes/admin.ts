@@ -25,7 +25,7 @@ router.post('/admin/config/update', authenticateToken, async (req: Authenticated
       where: { id: 1 },
       data: validatedData, // only valid + defined keys
     });
-    console.log(updated)
+  
 
     await configLoader.reload();
   
@@ -144,18 +144,19 @@ router.get('/admin/analytics/timeseries', authenticateToken, async (req: Authent
 });
 
 // GET route to fetch current faucet configuration
-router.get('/admin/config', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/admin/config', async (req: AuthenticatedRequest, res) => {
   try {
    const config = configLoader.get();
     // Return the configuration
     res.json({
       success: true,
       config: {
-        tokenAmount: config.faucetAmount/1000000000,
-        cooldownPeriod: config.cooldownSeconds,
+        availableBalance:config.availableBalance,
+        faucetAmount: config.faucetAmount/1000000000,
+        cooldownSeconds: config.cooldownSeconds,
         maxRequestsPerWallet: config.maxRequestsPerWallet,
-        isActive: config.enabled,
-        maxRequestsPerIP: config.maxRequestsPerIp,    
+        enabled: config.enabled,
+        maxRequestsPerIp: config.maxRequestsPerIp,    
       }
     });
 
