@@ -12,7 +12,6 @@ export const FaucetRequestSchema = z.object({
   walletAddress: z
     .string()
     .regex(/^0x[a-fA-F0-9]{64}$/, 'Invalid Sui wallet address'),
-  cfTurnstileToken: z.string().min(1, 'Turnstile token is required'),
 });
 
 // Validation schema for login
