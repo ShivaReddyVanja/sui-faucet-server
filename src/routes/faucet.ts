@@ -2,7 +2,7 @@
   import logger from './../logger';
   import { requestTestnetSui } from './../services/requestFaucet';
   import { FaucetRequest } from './../types';
-  import { ipLimiter, walletLimiter } from './../middlewares/ratelimiters';
+  import { faucetRateLimiter} from './../middlewares/ratelimiters';
   import { PrismaClient } from './../generated/prisma';
   import { configLoader } from '../utils/faucetConfigLoader';
   import { FaucetRequestSchema } from '../services/validation';
@@ -11,7 +11,7 @@
   const router = express();
   const prisma = new PrismaClient();
 
-  router.post('/faucet', [ipLimiter, walletLimiter], async (req: Request, res: Response) => {
+  router.post('/faucet', faucetRateLimiter, async (req: Request, res: Response) => {
     const config = await configLoader.get();
     if (!config.enabled) {
       return res.status(403).json({ status: 'error', error: 'Faucet is disabled' });
