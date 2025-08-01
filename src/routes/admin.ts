@@ -144,7 +144,7 @@ router.get('/admin/analytics/timeseries', authenticateToken, async (req: Authent
 });
 
 // GET route to fetch current faucet configuration
-router.get('/admin/config', authenticateToken, async (req: AuthenticatedRequest, res) => {
+router.get('/admin/config',  async (req: AuthenticatedRequest, res) => {
   try {
    const config = configLoader.get();
     // Return the configuration
