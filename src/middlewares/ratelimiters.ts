@@ -7,9 +7,8 @@ import { configLoader } from './../utils/faucetConfigLoader';
 dotenv.config();
 
 const url = process.env.CACHE_URL || 'localhost';
-
 export const redisClient = new Redis({
-  host: url,
+  host:url,
   port: 6379,
   enableOfflineQueue: false,
   tls: {},

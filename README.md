@@ -296,6 +296,57 @@ The backend implements sophisticated rate limiting:
 - Connection health metrics
 
 
+## 🤖 Discord Bot Integration
+
+### **Role-Based Access Control**
+
+The server now supports **role-based access** for Discord bot commands. This eliminates the need for authentication tokens and simplifies admin management.
+
+#### **Enhanced Middleware: `authenticateToken`**
+
+- ✅ **JWT Support**: Website authentication (existing)
+- ✅ **Discord Bot Support**: Role-based access (new)
+- ✅ **Backward Compatible**: All existing functionality preserved
+
+#### **Updated Routes:**
+
+| Route | Method | Middleware | Description |
+|-------|--------|------------|-------------|
+| `/admin/analytics` | GET | `authenticateToken` | View faucet statistics |
+| `/admin/config` | GET | `authenticateToken` | View faucet settings |
+| `/admin/config/update` | POST | `authenticateToken` | Update faucet settings |
+| `/admin/analytics/timeseries` | GET | `authenticateToken` | View time-series data |
+
+#### **Environment Variables:**
+
+```env
+# Discord Bot Secret (for secure identification)
+# Generate with: openssl rand -hex 32
+DISCORD_BOT_SECRET=your_generated_secret_here
+```
+
+#### **How It Works:**
+
+1. **Website**: Uses JWT tokens (existing functionality)
+2. **Discord Bot**: Sends secret key to identify as legitimate bot
+3. **Server**: Verifies bot secret and trusts the request
+4. **Role Validation**: Happens on Discord side before requests
+5. **Response**: Sent back to Discord user
+
+#### **Security Features:**
+
+- 🔐 **Bot Secret**: Cryptographically secure identification
+- 🛡️ **Header Verification**: Checks User-Agent and secret
+- ✅ **Role-Based**: Discord handles permission validation
+- 🚫 **No Spoofing**: Impossible to fake bot requests without secret
+
+#### **Benefits:**
+
+- 🚀 **Faster**: No login/token management
+- 🔒 **Secure**: Uses Discord's role system
+- 🎯 **Simple**: Just need Discord admin role
+- 🔄 **Flexible**: Easy to manage via Discord
+
 ## 🚀 Deployment
 
 ### Environment Setup

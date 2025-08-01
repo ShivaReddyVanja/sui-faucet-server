@@ -6,6 +6,12 @@ import { LoginSchema } from '../services/validation';
 import { authenticateToken, AuthenticatedRequest } from '../middlewares/adminAuth';
 import { generateAccessToken, generateRefreshToken, revokeRefreshToken, verifyRefreshToken, verifyWalletSignature } from '../utils/auth';
 
+// Discord API key validation schema
+const DiscordLoginSchema = z.object({
+  apiKey: z.string().min(1, 'API key is required'),
+  discordUserId: z.string().min(1, 'Discord user ID is required'),
+});
+
 
 const router = express();
 
@@ -21,7 +27,7 @@ router.post('/admin/login', async (req, res) => {
     }
 
     const { walletAddress, message, signature, signedBytes } = parseResult.data;
-
+   
     // Verify signature
     const isValidSignature = await verifyWalletSignature(message, signature, signedBytes);
     if (!isValidSignature) {
@@ -84,6 +90,47 @@ router.post('/admin/login', async (req, res) => {
   } catch (error: any) {
     logger.error('Login failed:', error);
     res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Discord bot login endpoint
+router.post('/discord/login', async (req, res) => {
+  try {
+    const parseResult = DiscordLoginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        issues: z.treeifyError(parseResult.error),
+      });
+    }
+
+    const { apiKey, discordUserId } = parseResult.data;
+
+    // Get Discord API keys from environment
+    const discordApiKeys = process.env.DISCORD_API_KEYS?.split(',') || [];
+    
+    // Validate API key
+    if (!discordApiKeys.includes(apiKey)) {
+      return res.status(401).json({ error: 'Invalid API key' });
+    }
+
+    // Generate a Discord bot token (not a real JWT, just a simple token)
+    const discordToken = `discord_${discordUserId}_${Date.now()}`;
+
+    logger.info(`Discord bot login successful for user: ${discordUserId}`);
+
+    res.json({
+      success: true,
+      accessToken: discordToken,
+      user: {
+        walletAddress: 'discord_admin',
+        role: 'admin',
+        discordUserId,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Discord login failed:', error);
+    res.status(500).json({ error: 'Discord login failed' });
   }
 });
 
